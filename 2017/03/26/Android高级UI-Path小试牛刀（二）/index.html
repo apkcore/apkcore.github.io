@@ -84,20 +84,12 @@
 
 
 
-<meta name="description" content="上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球这里就不得不提到贝塞尔曲线
-一阶贝塞尔曲线：Android 提供方法：lineTo()
-二阶贝塞尔曲线二阶贝塞尔曲线有一个控制点 P1 和两个数据点 P0，P2。如下图：二阶贝塞尔曲线
-Android 提供方法：quadTo()三阶贝塞尔曲线：三阶贝塞尔曲线有两个控制点 P1，P2 和两个数据点 P0，P3。如下图：
-三阶贝塞尔曲线">
+<meta name="description" content="上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球这里就不得不提到贝塞尔曲线">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android高级UI_Path小试牛刀（二）">
 <meta property="og:url" content="http://yoursite.com/2017/03/26/Android高级UI-Path小试牛刀（二）/index.html">
 <meta property="og:site_name" content="Apkcore">
-<meta property="og:description" content="上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球这里就不得不提到贝塞尔曲线
-一阶贝塞尔曲线：Android 提供方法：lineTo()
-二阶贝塞尔曲线二阶贝塞尔曲线有一个控制点 P1 和两个数据点 P0，P2。如下图：二阶贝塞尔曲线
-Android 提供方法：quadTo()三阶贝塞尔曲线：三阶贝塞尔曲线有两个控制点 P1，P2 和两个数据点 P0，P3。如下图：
-三阶贝塞尔曲线">
+<meta property="og:description" content="上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球这里就不得不提到贝塞尔曲线">
 <meta property="og:image" content="https://user-gold-cdn.xitu.io/2017/3/19/a7bd97c8b3b259edcf3cf8bc61947643">
 <meta property="og:image" content="https://user-gold-cdn.xitu.io/2017/3/19/f4b2226eacf785296c0dd56764b1f0f3">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-2ffdaf6f8ffe11a2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
@@ -114,14 +106,10 @@ Android 提供方法：quadTo()三阶贝塞尔曲线：三阶贝塞尔曲线有�
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-a2f35fed26f10919.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-7aca9bf438ef36ec.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-2d5deadeca830d5a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2017-03-26T08:27:53.230Z">
+<meta property="og:updated_time" content="2017-03-26T10:07:01.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android高级UI_Path小试牛刀（二）">
-<meta name="twitter:description" content="上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球这里就不得不提到贝塞尔曲线
-一阶贝塞尔曲线：Android 提供方法：lineTo()
-二阶贝塞尔曲线二阶贝塞尔曲线有一个控制点 P1 和两个数据点 P0，P2。如下图：二阶贝塞尔曲线
-Android 提供方法：quadTo()三阶贝塞尔曲线：三阶贝塞尔曲线有两个控制点 P1，P2 和两个数据点 P0，P3。如下图：
-三阶贝塞尔曲线">
+<meta name="twitter:description" content="上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球这里就不得不提到贝塞尔曲线">
 <meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2017/3/19/a7bd97c8b3b259edcf3cf8bc61947643">
 
 
@@ -344,7 +332,7 @@ Android 提供方法：quadTo()三阶贝塞尔曲线：三阶贝塞尔曲线有�
       
 
       
-        <p>上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球<br>这里就不得不提到<a href="http://blog.csdn.net/wingichoy/article/details/50492828" target="_blank" rel="external">贝塞尔曲线</a></p>
+        <p>上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球<br>这里就不得不提到<a href="http://blog.csdn.net/wingichoy/article/details/50492828" target="_blank" rel="external">贝塞尔曲线</a><br><a id="more"></a></p>
 <h3 id="一阶贝塞尔曲线："><a href="#一阶贝塞尔曲线：" class="headerlink" title="一阶贝塞尔曲线："></a>一阶贝塞尔曲线：</h3><p>Android 提供方法：<code>lineTo()</code></p>
 <h3 id="二阶贝塞尔曲线"><a href="#二阶贝塞尔曲线" class="headerlink" title="二阶贝塞尔曲线"></a>二阶贝塞尔曲线</h3><p>二阶贝塞尔曲线有一个控制点 P1 和两个数据点 P0，P2。如下图：<br><img src="https://user-gold-cdn.xitu.io/2017/3/19/a7bd97c8b3b259edcf3cf8bc61947643" alt="">二阶贝塞尔曲线</p>
 <p>Android 提供方法：<code>quadTo()</code><br>三阶贝塞尔曲线：<br>三阶贝塞尔曲线有两个控制点 P1，P2 和两个数据点 P0，P3。如下图：</p>

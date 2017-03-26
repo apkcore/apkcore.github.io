@@ -317,52 +317,14 @@
 
       
         
-          
-            <p>上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球<br>这里就不得不提到<a href="http://blog.csdn.net/wingichoy/article/details/50492828" target="_blank" rel="external">贝塞尔曲线</a></p>
-<h3 id="一阶贝塞尔曲线："><a href="#一阶贝塞尔曲线：" class="headerlink" title="一阶贝塞尔曲线："></a>一阶贝塞尔曲线：</h3><p>Android 提供方法：<code>lineTo()</code></p>
-<h3 id="二阶贝塞尔曲线"><a href="#二阶贝塞尔曲线" class="headerlink" title="二阶贝塞尔曲线"></a>二阶贝塞尔曲线</h3><p>二阶贝塞尔曲线有一个控制点 P1 和两个数据点 P0，P2。如下图：<br><img src="https://user-gold-cdn.xitu.io/2017/3/19/a7bd97c8b3b259edcf3cf8bc61947643" alt="">二阶贝塞尔曲线</p>
-<p>Android 提供方法：<code>quadTo()</code><br>三阶贝塞尔曲线：<br>三阶贝塞尔曲线有两个控制点 P1，P2 和两个数据点 P0，P3。如下图：</p>
-<p><img src="https://user-gold-cdn.xitu.io/2017/3/19/f4b2226eacf785296c0dd56764b1f0f3" alt="">三阶贝塞尔曲线</p>
-<p>Android 提供方法：<code>cubicTo()</code></p>
-<h2 id="二阶贝塞尔曲线实现如图效果"><a href="#二阶贝塞尔曲线实现如图效果" class="headerlink" title="二阶贝塞尔曲线实现如图效果"></a>二阶贝塞尔曲线实现如图效果</h2><p><img src="http://upload-images.jianshu.io/upload_images/1981764-2ffdaf6f8ffe11a2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="水波纹"></p>
-<h3 id="实现思路："><a href="#实现思路：" class="headerlink" title="实现思路："></a>实现思路：</h3><ul>
-<li>画出至少两段的波纹</li>
-<li>使用 ValueAnimator 不断获取平移的值 offset</li>
-<li>利用 offset 不断的改变波纹的位置</li>
-<li>画一个圆，取与波纹相交的部分</li>
-</ul>
-<p>现在分步骤来说明：</p>
-<p>######1. 画出至少两段波纹我们首先要画出两段波纹。一段波纹就包含两条曲线。每条曲线我们可以使用 quadTo() 方法来画。<br>为了更容易理解，请看下图：</p>
-<p><img src="https://user-gold-cdn.xitu.io/2017/3/19/9583d01c16566b8d6a35a70efb8b574f" alt="">水波纹坐标图</p>
-<p>mWL 是一段波纹的长度，mCenterY 是屏幕高度的一半。<br>画第一段波纹的第一条曲线：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mPath.moveTo(-mWL, mCenterY); //将path操作的起点移动到(-mWL,mCenterY)mPath.quadTo((-mWL * 3 / 4) , mCenterY + 60, (-mWL / 2), mCenterY); //画出第一段波纹的第一条曲线</div></pre></td></tr></table></figure></p>
-<p>画出第一段波纹的第二条曲线<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mPath.quadTo((-mWL / 4) , mCenterY - 60, 0, mCenterY); //画出第一段波纹的第二条曲线</div></pre></td></tr></table></figure></p>
-<p>画出第二段波纹的第一条曲线：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mPath.quadTo((mWL /4) , mCenterY + 60, (mWL / 2), mCenterY); //画出第二段波纹的第一条曲线</div></pre></td></tr></table></figure></p>
-<p>画出第二段波纹的第二条曲线：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mPath.quadTo((mWL * 3/ 4) , mCenterY - 60, mWL, mCenterY); //画出第二段波纹的第二条曲线</div></pre></td></tr></table></figure></p>
-<ol>
-<li>使用 ValueAnimator 不断获取平移的值 offset<br>那么现在来想一下应该怎么让这几段波纹动起来呢？我们需要一个 offset 的平移值。这个值应该加在每个点的x坐标上，并且 offset 是不断变化的，这样才会形成一个向右平移的效果。那怎么才能获取到这个变化的offset的值呢？答案就是要使用 ValueAnimator 。用法如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">private void initAnimator() &#123;</div><div class="line">    ValueAnimator animator = ValueAnimator.ofInt(0, mWL);</div><div class="line">    animator.setRepeatCount(ValueAnimator.INFINITE);</div><div class="line">    animator.setDuration(2000);</div><div class="line">    animator.setInterpolator(new LinearInterpolator());</div><div class="line">    animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() &#123;</div><div class="line">        @Override</div><div class="line">        public void onAnimationUpdate(ValueAnimator animation) &#123;</div><div class="line">            offset = (int) animation.getAnimatedValue();</div><div class="line">            postInvalidate();</div><div class="line">        &#125;</div><div class="line">    &#125;);</div><div class="line">    animator.start();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>这样只要动画开始，offset 就会不断从 0~mWL 变化。</p>
-<ol>
-<li>利用offset不断的改变波纹的位置<br>现在为曲线的所有 X 坐标都加上 offset 值。这样就会产生平移的效果，为了简化代码，这里使用的 for 循环来画曲线。<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">mPath.reset();</div><div class="line">mPath.moveTo(-mWL + offset, mCenterY);</div><div class="line">for (int i = 0; i &lt; mWaveCount; i++) &#123;</div><div class="line">    mPath.quadTo((-mWL * 3 / 4) + (i * mWL) + offset, mCenterY + 60, (-mWL / 2) + (i * mWL) + offset, mCenterY);</div><div class="line">    mPath.quadTo((-mWL / 4) + (i * mWL) + offset, mCenterY - 60, i * mWL + offset, mCenterY);</div><div class="line">&#125;</div><div class="line">mPath.lineTo(mScreenWidth, mScreenHeight);</div><div class="line">mPath.lineTo(0, mScreenHeight);</div><div class="line">mPath.close();</div><div class="line">canvas.setDrawFilter(pfd);</div><div class="line">canvas.drawPath(mPath, mPaint);</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>现在，我们已经得到了波浪<br><img src="http://upload-images.jianshu.io/upload_images/1981764-1724499282b0a4bd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="微信截图_20170326154225.png"><br>这里我们可以用<code>mPath.op(mPath2, Path.Op.INTERSECT);</code><br>但是这样就最低版本只能支持api19，兼容性不好，所以我们要换个思维，使用<code>canvas.clipPath(mPath, Region.Op.INTERSECT);</code><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">    protected void onDraw(Canvas canvas) &#123;</div><div class="line">        super.onDraw(canvas);</div><div class="line">        //画圆</div><div class="line">        canvas.drawCircle(mScreenWidth / 2, mCenterY, 300, mPaint2);</div><div class="line"></div><div class="line">        mPath.reset();</div><div class="line">        mPath.moveTo(-mWL + offset, mCenterY);</div><div class="line">        for (int i = 0; i &lt; mWaveCount; i++) &#123;</div><div class="line">            mPath.quadTo((-mWL * 3 / 4) + (i * mWL) + offset, mCenterY + 60, (-mWL / 2) + (i * mWL) + offset, mCenterY);</div><div class="line">            mPath.quadTo((-mWL / 4) + (i * mWL) + offset, mCenterY - 60, i * mWL + offset, mCenterY);</div><div class="line">        &#125;</div><div class="line">        mPath.lineTo(mScreenWidth, mScreenHeight);</div><div class="line">        mPath.lineTo(0, mScreenHeight);</div><div class="line">        mPath.close();</div><div class="line"></div><div class="line">        mPath2.addCircle(mScreenWidth / 2, mCenterY, 300, Path.Direction.CCW);</div><div class="line">        //api19以上才能用</div><div class="line">//        mPath.op(mPath2, Path.Op.INTERSECT);</div><div class="line">        //改用canvas.clipPath</div><div class="line">        canvas.clipPath(mPath, Region.Op.INTERSECT);</div><div class="line">        canvas.setDrawFilter(pfd);</div><div class="line">        canvas.drawPath(mPath2, mPaint);</div><div class="line"></div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
-<p>成功画出<br><img src="http://upload-images.jianshu.io/upload_images/1981764-2ffdaf6f8ffe11a2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="水波纹"></p>
-<h2 id="三阶贝塞尔曲线的应用："><a href="#三阶贝塞尔曲线的应用：" class="headerlink" title="三阶贝塞尔曲线的应用："></a><a href="http://www.jianshu.com/p/791d3a791ec2" target="_blank" rel="external">三阶贝塞尔曲线的应用</a>：</h2><p><img src="http://upload-images.jianshu.io/upload_images/1981764-36d562d0ac48b703.gif?imageMogr2/auto-orient/strip" alt="小水滴粘性.gif"><br>贝塞尔曲线知识讲解<br>将这个圆的动画效果拆解开看的画，其实会分为5个状态。<br><img src="http://upload-images.jianshu.io/upload_images/1981764-84cdc2af35da384c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">pic1.png-2kB</p>
-<p>状态1<br><img src="http://upload-images.jianshu.io/upload_images/1981764-30741d2b05ae249b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">pic2.png-2.4kB</p>
-<p>状态2<br><img src="http://upload-images.jianshu.io/upload_images/1981764-7464fcef15173bfe.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">pic3.png-2.6kB</p>
-<p>状态3<br><img src="http://upload-images.jianshu.io/upload_images/1981764-bb0e7db42babadbb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">pic4.png-2.4kB</p>
-<p>状态4<br><img src="http://upload-images.jianshu.io/upload_images/1981764-84cdc2af35da384c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">pic1.png-2kB</p>
-<p>状态5注：我这里的状态4和状态5其实与原设计图是有出入的，我这里的5个状态其实是对称关系的，但是原设计图并非是对称关系，然后因为我偷懒，就做成了对称设计，这个以后再优化吧~<br>也就是说，这个动画效果的实现就是不同状态之间的转化加上水平位移的实现，现在已经将动画肢解完了，那么接下来就讲解下如何实现圆的形变吧。<br>开始讲解具体内容之前我们需要先了解一下如何用贝塞尔曲线画一个圆，因为我的做法是通过贝塞尔曲线来实现的。<br><img src="http://upload-images.jianshu.io/upload_images/1981764-df468e6ae5b0cc31.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">stackoverflow</p>
-<p>上图是stackoverflow上的一个<a href="http://stackoverflow.com/questions/1734745/how-to-create-circle-with-b%C3%A9zier-curves" target="_blank" rel="external">答案</a>，这个答案可能说的不是很清楚，这里还有一篇<a href="http://spencermortensen.com/articles/bezier-circle/" target="_blank" rel="external">文章</a>，这两个的结果都是差不多，就是所需要的数值c约等于0.551915024494f，具体的论证过程可以看这两篇文章，那么这个c的值有什么用么，我用最简单的方法来说明，就是把图中的1理解为圆的半径，那么对应的另外个值就应该是半径乘以0.551915024494f。可能有朋友还是看不懂这个c到底干啥用呢，我下面画一个图来描述下，大概是怎么个意思。<br><img src="http://upload-images.jianshu.io/upload_images/1981764-a2f35fed26f10919.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">jiangjietu.png-16.1kB</p>
-<p>这里的坐标轴也就是Android中的坐标轴了，如果我们打算用贝塞尔曲线来画这么一个圆的话，我们需要知道这个圆的半径，以及图中的M的值，知道这两个值的话就能够知道图中12个点的坐标，知道坐标就能够用Path的cubicTo方法来使用贝塞尔曲线画出圆了。这里稍微展示点代码来说明如何绘制P0至P3这段圆弧。<br>mPath.moveTo(p0.x,p0.y);mPath.cubicTo(p1.x, p1.y, p2.x, p2.y, p3.x,p3.y);</p>
-<p>这样我们就知道如何使用贝塞尔曲线来绘制一个圆了。也就是状态1和状态5我们都会绘制了，接下来看看状态2如何绘制。<br><img src="http://upload-images.jianshu.io/upload_images/1981764-7aca9bf438ef36ec.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">jiangjietu2.png-108.1kB</p>
-<p>通过上图大家就能很快的明白状态2应该如何绘制，其实就是把右边的点向右移动点距离就行了。其实photoshop(sketch)这些绘图软件中的钢笔工具(Vector)就是用的贝塞尔曲线，然后这里推荐个<a href="http://bezier.method.ac/" target="_blank" rel="external">网址</a>给大家，轻松上手钢笔工具的使用哦，强烈推荐！！！<br>看完上面的讲解，那么状态3也就一点都不难了。<br><img src="http://upload-images.jianshu.io/upload_images/1981764-2d5deadeca830d5a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">jiangjietu3.png-111kB</p>
-<p>看到上图就明白状态3的实现就是在状态2的基础上修改了个值，一个是M的值加大，让圆看起来跟肥一点，还有就是圈住的那些点向右移动，做到居中。<br><a href="https://github.com/apkcore/PathTest" target="_blank" rel="external">github代码下载</a></p>
-<p>也欢迎关注我的<a href="http://www.jianshu.com/u/82e5d3b09197" target="_blank" rel="external">简书</a>和<a href="http://blog.csdn.net/apkcore?viewmode=contents" target="_blank" rel="external">CSDN</a></p>
-
-          
+          <p>上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球<br>这里就不得不提到<a href="http://blog.csdn.net/wingichoy/article/details/50492828">贝塞尔曲线</a><br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/03/26/Android高级UI-Path小试牛刀（二）/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -478,18 +440,33 @@
 
       
         
-          <p>我们知道Android中Canvas类对象可以进行绘制事物，里面有一个方法为canvas.drawPath方法，这个方法就是用来绘制我们的自定义Path对象。Path对象很有用，我们可以绘制一些特殊的动画效果，文字吸附效果等等。所以我们需要来学习下Path对象的使用。</p>
+          
+            <a id="more"></a>
+<p>我们知道Android中Canvas类对象可以进行绘制事物，里面有一个方法为canvas.drawPath方法，这个方法就是用来绘制我们的自定义Path对象。Path对象很有用，我们可以绘制一些特殊的动画效果，文字吸附效果等等。所以我们需要来学习下Path对象的使用。</p>
 <p>要想使用path做出漂亮的图片，<br>比如水波加载</p>
 <p><img src="http://upload-images.jianshu.io/upload_images/1981764-0e5b1ed1911408d9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="水波纹.png"></p>
 <p>比如</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/1981764-36d562d0ac48b703.gif?imageMogr2/auto-orient/strip" alt="小水滴粘性.gif"><br>
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/03/26/Android高级UI_Path小试牛刀（一）/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
+<p><img src="http://upload-images.jianshu.io/upload_images/1981764-36d562d0ac48b703.gif?imageMogr2/auto-orient/strip" alt="小水滴粘性.gif"></p>
+<h1 id="怎么使用path？"><a href="#怎么使用path？" class="headerlink" title="怎么使用path？"></a>怎么使用path？</h1><p>以下是Path的基本操作的方法：</p>
+<p>第一类(直线与点的操作)：lineTo,moveTo,setLastPoint,close</p>
+<p>第二类(基本形状)：</p>
+<p>addXxx,arcTo</p>
+<p>第三类(设置方法) ：</p>
+<p>set(),offset(),reset()</p>
+<p>第四类(判断方法) ：isConvex(),isEmpty(),isRect(RectF rect)<br>这些方法之前都要做一个画笔的初始化，代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">private void initPaint() &#123;</div><div class="line">       mPath = new Path();</div><div class="line">       mPaint = new Paint();</div><div class="line">       mPaint.setStyle(Paint.Style.STROKE);</div><div class="line">       mPaint.setAntiAlias(true);</div><div class="line">       mPaint.setStrokeWidth(8);</div><div class="line">       mPaint.setColor(ContextCompat.getColor(this.getContext(), R.color.colorAccent));</div><div class="line">   &#125;</div></pre></td></tr></table></figure></p>
+<h1 id="Path常用方法表"><a href="#Path常用方法表" class="headerlink" title="Path常用方法表"></a>Path常用方法表</h1><p>移动起点    moveTo    移动下一次操作的起点位置<br>设置终点    setLastPoint    重置当前path中最后一个点位置，如果在绘制之前调用，效果和moveTo相同<br>连接直线    lineTo    添加上一个点到当前点之间的直线到Path<br>闭合路径    close    连接第一个点连接到最后一个点，形成一个闭合区域<br>添加内容    addRect, addRoundRect, addOval, addCircle, addPath, addArc, arcTo    添加(矩形， 圆角矩形， 椭圆， 圆， 路径， 圆弧) 到当前Path (注意addArc和arcTo的区别)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 线的操作</div><div class="line"> */</div><div class="line">mPath.moveTo(100, 100);</div><div class="line">mPath.lineTo(300, 300);</div><div class="line">mPath.lineTo(100, 300);</div><div class="line">mPath.lineTo(100, 100);</div><div class="line">mPath.moveTo(300, 300);</div><div class="line">mPath.lineTo(500, 300);</div><div class="line">mPath.setLastPoint(500, 500);//改变上一次操作路径的结束坐标点</div><div class="line">mPath.lineTo(100, 500);</div><div class="line">mPath.close();</div><div class="line"></div><div class="line">/**</div><div class="line"> *  基本形状</div><div class="line"> */</div><div class="line">RectF rectF = new RectF(100,800,200,900);</div><div class="line">mPath.addRect(rectF, Path.Direction.CW);</div><div class="line">mPath.setLastPoint(150,1000);</div><div class="line"></div><div class="line">mPath.addCircle(500,1000,200, Path.Direction.CW);</div><div class="line"></div><div class="line">rectF = new RectF(100,1200,500,1700);</div><div class="line">mPath.addRoundRect(rectF,100,100, Path.Direction.CW);//圆角的两个半径</div><div class="line"></div><div class="line"></div><div class="line">canvas.drawPath(mPath, mPaint);//画出路径</div></pre></td></tr></table></figure></p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1981764-e3c69f9e89d5c02d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="基础线的使用.png"></p>
+<h6 id="addPath（添加Path）："><a href="#addPath（添加Path）：" class="headerlink" title="addPath（添加Path）："></a>addPath（添加Path）：</h6><p>将两个path合并在一起，方法如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public void addPath (Path src)</div><div class="line">public void addPath (Path src, float dx, float dy)</div><div class="line">public void addPath (Path src, Matrix matrix)</div></pre></td></tr></table></figure></p>
+<p>addPath的第二个方法的 dx 和 dy 两个参数是什么意思呢？<br>其实它们是代表添加path后的位移值。</p>
+<h3 id="设置方法"><a href="#设置方法" class="headerlink" title="设置方法"></a>设置方法</h3><h6 id="1-set"><a href="#1-set" class="headerlink" title="1 set()"></a>1 set()</h6><p>方法预览：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public void set(Path src)</div></pre></td></tr></table></figure></p>
+<p>将新的path赋值到现有的path</p>
+<h6 id="2-offset"><a href="#2-offset" class="headerlink" title="2 offset()"></a>2 offset()</h6><p>方法预览：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">public void offset (float dx, float dy) ;</div><div class="line">public void offset (float dx, float dy, Path dst)</div></pre></td></tr></table></figure></p>
+<p>将path进行平移<br>offset的第二个方法的第三个参数的意思就是将平移后的path存储到dst参数中。如果传入dst不为空，将平移后的状态存储到dst中，不影响当前path。dst为空，平移作用当前的path，相当于第一个方法。</p>
+<h6 id="3-reset"><a href="#3-reset" class="headerlink" title="3 reset()"></a>3 reset()</h6><p>方法预览：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public void reset()</div></pre></td></tr></table></figure></p>
+<p>这个方法很简单，就是将path的所有操作都清空掉。</p>
+<p>也欢迎关注我的<a href="http://www.jianshu.com/u/82e5d3b09197" target="_blank" rel="external">简书</a>和<a href="http://blog.csdn.net/apkcore?viewmode=contents" target="_blank" rel="external">CSDN</a></p>
+
+          
         
       
     </div>
@@ -605,76 +582,15 @@
 
       
         
-          
-            <p>这里的多语言切换专指应用内的多语言切换，不涉及直接通过应用修改系统语言设置的功能。比如微信里面的</p>
-<p>我 -&gt; 设置 -&gt; 通用 -&gt; 多语言<br>举个例子，假如 App 支持简体和繁体两种设置，默认界面为“中文简体”。</p>
-<p>如果用户选择“中文简体”，那么展示简体界面；<br>如果用户选择“中文繁体”，那么展示繁体界面；<br>如果用户选择“跟随系统”，那么如果系统语言设置是“中文简体”，则展示简体界面，如果系统语言设置是“中文繁体”，则展示繁体界面，<br>如果系统语言设置是“English(US)”，则展示默认界面，即简体界面。</p>
-<p>android_push</p>
-<p>另外，在 App 运行过程中，用户如果在系统的设置里面切换语言，同样会提示应用“语言设置”发生变化，因此，多一个流程图：</p>
-<p>android_push</p>
-<p>此图与前一个图的区别就是，如果用户没有选择“跟随系统”，那么，来自系统的设置就被忽略掉。</p>
-<p>现在需要处理的问题如下：</p>
-<p>如何获取应用内语言设置<br>如何获取系统语言设置<br>如何更改应用的语言设置</p>
-<ol>
-<li>如何获取应用内语言设置<br>这个问题比较好处理，在 SharedPreference 内保存用户的语言设置即可。</li>
-</ol>
-<p>class UserLocale{<br>    public static final int FOLLOW_SYSTEM = 0;//跟随系统<br>    public static final int SIMPLIFIED_CHINESE = 1; //简体中文<br>    public static final int TRADITIONAL_CHINESE = 2; //繁体中文</p>
-<pre><code>//获取用户设置
-public int getUserLocale(){
-    //...
-}
-</code></pre><p>}</p>
-<ol>
-<li>如何获取系统语言设置<blockquote>
-<p>第一种：<br><code>Locale.getDefault()</code><br>这是从 Java 来的方法，可以通过 Locale.setDefault(Locale) 来修改。 不过这个方法有时候会出现莫名其妙的问题，比如一会儿返回系统语言 “zn_CN”，一会儿就返回 “en_US”，并不稳定。</p>
-</blockquote>
-</li>
-</ol>
-<blockquote>
-<p>第二种：网上一般推荐这种，但是在配置过一次后跟随系统时，巨坑<br><code>context.getResources().getConfiguration().locale;</code>对于 Android N 来说，应该这样</p>
-</blockquote>
-<p>context.getResources().getConfiguration().getLocales().get(0);<br>这个返回的是当前 APP 的 Resource 对应的 Locale 设置。这个也可以通过代码来修改。后面“更新应用的语言设置”的时候就是通过更新 Configuration 来实现的。 同样，问题是我们肯定要修改 Configuration，一旦修改之后，这个操作就再也获取不到系统语言设置了。 如果一定要用这个，一个变通的方法就是在一开始就将 Configuration 保存下来，同时在以后每次系统语言设置有改动的时候，就同步更新一次即可。</p>
-<blockquote>
-<p>第三种：<br><code>Resources.getSystem().getConfiguration().locale;</code><br>这个方法与上面的很像，不过这个返回的是系统全局 Resource 的 Locale，可以当做系统 Locale 来用。</p>
-</blockquote>
-<ol>
-<li>如何更改应用的语言设置<br>如上文所述，用户选定语言之后，要修改 APP 对应的 Configuration：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Locale targetLocale = getTargetLocale();</div><div class="line">Resources resources = context.getResources();</div><div class="line">Configuration config = resources.getConfiguration();</div><div class="line">DisplayMetrics dm = resources.getDisplayMetrics();</div><div class="line">config.locale = targetLocale;</div><div class="line">resources.updateConfiguration(config, dm);</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>至于 getTargetLocale() 的实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">int getTargetLocale()&#123;</div><div class="line">    int userType = UserLocale.getUserLocale();</div><div class="line">    if(userType == LanguageType.FOLLOW_SYSTEM)&#123;</div><div class="line">        int sysType = getSysLocale();</div><div class="line">        if(sysType == LanguageType.TRADITIONAL_CHINESE)&#123;</div><div class="line">            return Locale.TRADITIONAL_CHINESE;</div><div class="line">        &#125;else&#123;</div><div class="line">            return Locale.SIMPLIFIED_CHINESE;</div><div class="line">        &#125;</div><div class="line">    &#125;else if(userType == LanguageType.TRADITIONAL_CHINESE)&#123;</div><div class="line">        return Locale.TRADITIONAL_CHINESE;</div><div class="line">    &#125;else&#123;</div><div class="line">        return Locale.SIMPLIFIED_CHINESE;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>getSysLocale() 的实现参考 “2. 如何获取系统语言设置”。</p>
-<p>触发语言切换的来源有两种：</p>
-<p>应用内切换语言设置<br>系统切换语言设置<br>对于“应用内切换语言设置”来说，用户选择语言之后，需要手动重启所有的界面，为了方便，可以直接重启 Root Activity 并 Clear Top，这样方便快捷。</p>
-<p>对于“系统切换语言设置”，默认情况下，如果我们的 APP 在后台运行，系统会主动重建所有的 Activity。我们可以在 Root Activity 监听</p>
-<p>Intent.ACTION_LOCALE_CHANGED<br>广播，在重启 Activity 之前修改 APP 全局的 Configuration。</p>
-<p>如果对应的 Activity 设置了</p>
-<p>android:configChanges=”locale”<br>则可以直接在</p>
-<p>Activity.onConfigurationChanged(Configuration newConfig)<br>中响应 Configuration 的变化。如果无效，请参《android:configChanges locale 改语言后，该配置不起作用的原因》 更详细的可以参考《Android-语言设置流程分析》</p>
-<p>几个问题<br>RadioButton 或者 CheckBox 在重建之后没有更改语言。<br>这个问题应该存在于 5.0 之前的系统，问题原因可以参考Not all items in the layout update properly when switching locales</p>
-<p>主要是 setFreezesText(true) 导致的，不过 5.0 之后好像就修复了这个问题，因为 Framework 中 CompoundButton 的源码有改动：</p>
-<p>Android 4.1.1_r3：</p>
-<pre><code>@Override
-public Parcelable onSaveInstanceState() {
-    setFreezesText(true);
-    Parcelable superState = super.onSaveInstanceState();
-
-    SavedState ss = new SavedState(superState);
-
-    ss.checked = isChecked();
-    return ss;
-}
-</code></pre><p>Android 6.0：</p>
-<pre><code>@Override
-public Parcelable onSaveInstanceState() {
-    Parcelable superState = super.onSaveInstanceState();
-
-    SavedState ss = new SavedState(superState);
-
-    ss.checked = isChecked();
-    return ss;
-}
-</code></pre>
-          
+          <p>这里的多语言切换专指应用内的多语言切换，不涉及直接通过应用修改系统语言设置的功能。比如微信里面的</p>
+<p>我 -&gt; 设置 -&gt; 通用 -&gt; 多语言<br>举个例子，假如 App 支持简体和繁体两种设置，默认界面为“中文简体”。<br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/03/24/深渊巨坑！关于android-N后多语言切换/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
@@ -790,18 +706,14 @@ public Parcelable onSaveInstanceState() {
 
       
         
-          
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo new <span class="string">"My New Post"</span></div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo server</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo generate</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo deploy</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>
-
-          
+          <p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.<br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/01/24/hello-world/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
