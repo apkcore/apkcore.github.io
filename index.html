@@ -478,32 +478,18 @@
 
       
         
-          
-            <p>我们知道Android中Canvas类对象可以进行绘制事物，里面有一个方法为canvas.drawPath方法，这个方法就是用来绘制我们的自定义Path对象。Path对象很有用，我们可以绘制一些特殊的动画效果，文字吸附效果等等。所以我们需要来学习下Path对象的使用。</p>
+          <p>我们知道Android中Canvas类对象可以进行绘制事物，里面有一个方法为canvas.drawPath方法，这个方法就是用来绘制我们的自定义Path对象。Path对象很有用，我们可以绘制一些特殊的动画效果，文字吸附效果等等。所以我们需要来学习下Path对象的使用。</p>
 <p>要想使用path做出漂亮的图片，<br>比如水波加载</p>
 <p><img src="http://upload-images.jianshu.io/upload_images/1981764-0e5b1ed1911408d9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="水波纹.png"></p>
 <p>比如</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/1981764-36d562d0ac48b703.gif?imageMogr2/auto-orient/strip" alt="小水滴粘性.gif"></p>
-<h1 id="怎么使用path？"><a href="#怎么使用path？" class="headerlink" title="怎么使用path？"></a>怎么使用path？</h1><p>以下是Path的基本操作的方法：</p>
-<p>第一类(直线与点的操作)：lineTo,moveTo,setLastPoint,close</p>
-<p>第二类(基本形状)：</p>
-<p>addXxx,arcTo</p>
-<p>第三类(设置方法) ：</p>
-<p>set(),offset(),reset()</p>
-<p>第四类(判断方法) ：isConvex(),isEmpty(),isRect(RectF rect)<br>这些方法之前都要做一个画笔的初始化，代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">private void initPaint() &#123;</div><div class="line">       mPath = new Path();</div><div class="line">       mPaint = new Paint();</div><div class="line">       mPaint.setStyle(Paint.Style.STROKE);</div><div class="line">       mPaint.setAntiAlias(true);</div><div class="line">       mPaint.setStrokeWidth(8);</div><div class="line">       mPaint.setColor(ContextCompat.getColor(this.getContext(), R.color.colorAccent));</div><div class="line">   &#125;</div></pre></td></tr></table></figure></p>
-<h1 id="Path常用方法表"><a href="#Path常用方法表" class="headerlink" title="Path常用方法表"></a>Path常用方法表</h1><p>移动起点    moveTo    移动下一次操作的起点位置<br>设置终点    setLastPoint    重置当前path中最后一个点位置，如果在绘制之前调用，效果和moveTo相同<br>连接直线    lineTo    添加上一个点到当前点之间的直线到Path<br>闭合路径    close    连接第一个点连接到最后一个点，形成一个闭合区域<br>添加内容    addRect, addRoundRect, addOval, addCircle, addPath, addArc, arcTo    添加(矩形， 圆角矩形， 椭圆， 圆， 路径， 圆弧) 到当前Path (注意addArc和arcTo的区别)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * 线的操作</div><div class="line"> */</div><div class="line">mPath.moveTo(100, 100);</div><div class="line">mPath.lineTo(300, 300);</div><div class="line">mPath.lineTo(100, 300);</div><div class="line">mPath.lineTo(100, 100);</div><div class="line">mPath.moveTo(300, 300);</div><div class="line">mPath.lineTo(500, 300);</div><div class="line">mPath.setLastPoint(500, 500);//改变上一次操作路径的结束坐标点</div><div class="line">mPath.lineTo(100, 500);</div><div class="line">mPath.close();</div><div class="line"></div><div class="line">/**</div><div class="line"> *  基本形状</div><div class="line"> */</div><div class="line">RectF rectF = new RectF(100,800,200,900);</div><div class="line">mPath.addRect(rectF, Path.Direction.CW);</div><div class="line">mPath.setLastPoint(150,1000);</div><div class="line"></div><div class="line">mPath.addCircle(500,1000,200, Path.Direction.CW);</div><div class="line"></div><div class="line">rectF = new RectF(100,1200,500,1700);</div><div class="line">mPath.addRoundRect(rectF,100,100, Path.Direction.CW);//圆角的两个半径</div><div class="line"></div><div class="line"></div><div class="line">canvas.drawPath(mPath, mPaint);//画出路径</div></pre></td></tr></table></figure></p>
-<p><img src="http://upload-images.jianshu.io/upload_images/1981764-e3c69f9e89d5c02d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="基础线的使用.png"></p>
-<h6 id="addPath（添加Path）："><a href="#addPath（添加Path）：" class="headerlink" title="addPath（添加Path）："></a>addPath（添加Path）：</h6><p>将两个path合并在一起，方法如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public void addPath (Path src)</div><div class="line">public void addPath (Path src, float dx, float dy)</div><div class="line">public void addPath (Path src, Matrix matrix)</div></pre></td></tr></table></figure></p>
-<p>addPath的第二个方法的 dx 和 dy 两个参数是什么意思呢？<br>其实它们是代表添加path后的位移值。</p>
-<h3 id="设置方法"><a href="#设置方法" class="headerlink" title="设置方法"></a>设置方法</h3><h6 id="1-set"><a href="#1-set" class="headerlink" title="1 set()"></a>1 set()</h6><p>方法预览：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public void set(Path src)</div></pre></td></tr></table></figure></p>
-<p>将新的path赋值到现有的path</p>
-<h6 id="2-offset"><a href="#2-offset" class="headerlink" title="2 offset()"></a>2 offset()</h6><p>方法预览：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">public void offset (float dx, float dy) ;</div><div class="line">public void offset (float dx, float dy, Path dst)</div></pre></td></tr></table></figure></p>
-<p>将path进行平移<br>offset的第二个方法的第三个参数的意思就是将平移后的path存储到dst参数中。如果传入dst不为空，将平移后的状态存储到dst中，不影响当前path。dst为空，平移作用当前的path，相当于第一个方法。</p>
-<h6 id="3-reset"><a href="#3-reset" class="headerlink" title="3 reset()"></a>3 reset()</h6><p>方法预览：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">public void reset()</div></pre></td></tr></table></figure></p>
-<p>这个方法很简单，就是将path的所有操作都清空掉。</p>
-<p>也欢迎关注我的<a href="http://www.jianshu.com/u/82e5d3b09197" target="_blank" rel="external">简书</a>和<a href="http://blog.csdn.net/apkcore?viewmode=contents" target="_blank" rel="external">CSDN</a></p>
-
-          
+<p><img src="http://upload-images.jianshu.io/upload_images/1981764-36d562d0ac48b703.gif?imageMogr2/auto-orient/strip" alt="小水滴粘性.gif"><br>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2017/03/26/Android高级UI_Path小试牛刀（一）/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
         
       
     </div>
