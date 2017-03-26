@@ -1,266 +1,51 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  
-  <title>Android高级UI_Path小试牛刀（二） | Apkcore</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球这里就不得不提到贝塞尔曲线
-一阶贝塞尔曲线：Android 提供方法：lineTo()
-二阶贝塞尔曲线二阶贝塞尔曲线有一个控制点 P1 和两个数据点 P0，P2。如下图：二阶贝塞尔曲线
-Android 提供方法：quadTo()三阶贝塞尔曲线：三阶贝塞尔曲线有两个控制点 P1，P2 和两个数据点 P0，P3。如下图：
-三阶贝塞尔曲线">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Android高级UI_Path小试牛刀（二）">
-<meta property="og:url" content="http://yoursite.com/2017/03/26/Android高级UI-Path小试牛刀（二）/index.html">
-<meta property="og:site_name" content="Apkcore">
-<meta property="og:description" content="上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球这里就不得不提到贝塞尔曲线
-一阶贝塞尔曲线：Android 提供方法：lineTo()
-二阶贝塞尔曲线二阶贝塞尔曲线有一个控制点 P1 和两个数据点 P0，P2。如下图：二阶贝塞尔曲线
-Android 提供方法：quadTo()三阶贝塞尔曲线：三阶贝塞尔曲线有两个控制点 P1，P2 和两个数据点 P0，P3。如下图：
-三阶贝塞尔曲线">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2017/3/19/a7bd97c8b3b259edcf3cf8bc61947643">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2017/3/19/f4b2226eacf785296c0dd56764b1f0f3">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-2ffdaf6f8ffe11a2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="https://user-gold-cdn.xitu.io/2017/3/19/9583d01c16566b8d6a35a70efb8b574f">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-1724499282b0a4bd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-2ffdaf6f8ffe11a2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-36d562d0ac48b703.gif?imageMogr2/auto-orient/strip">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-84cdc2af35da384c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-30741d2b05ae249b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-7464fcef15173bfe.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-bb0e7db42babadbb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-84cdc2af35da384c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-df468e6ae5b0cc31.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-a2f35fed26f10919.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-7aca9bf438ef36ec.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-2d5deadeca830d5a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2017-03-26T08:27:53.230Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Android高级UI_Path小试牛刀（二）">
-<meta name="twitter:description" content="上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球这里就不得不提到贝塞尔曲线
-一阶贝塞尔曲线：Android 提供方法：lineTo()
-二阶贝塞尔曲线二阶贝塞尔曲线有一个控制点 P1 和两个数据点 P0，P2。如下图：二阶贝塞尔曲线
-Android 提供方法：quadTo()三阶贝塞尔曲线：三阶贝塞尔曲线有两个控制点 P1，P2 和两个数据点 P0，P3。如下图：
-三阶贝塞尔曲线">
-<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2017/3/19/a7bd97c8b3b259edcf3cf8bc61947643">
-  
-    <link rel="alternate" href="/atom.xml" title="Apkcore" type="application/atom+xml">
-  
-  
-    <link rel="icon" href="/favicon.png">
-  
-  
-    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
-  
-  <link rel="stylesheet" href="/css/style.css">
-  
+extends base
 
-</head>
+block title
+  title= page.title + ' | ' + config.title
 
-<body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">Apkcore</a>
-      </h1>
-      
-    </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
-        
-          <a class="main-nav-link" href="/">Home</a>
-        
-          <a class="main-nav-link" href="/archives">Archives</a>
-        
-      </nav>
-      <nav id="sub-nav">
-        
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
-        
-        <a id="nav-search-btn" class="nav-icon" title="Zoeken"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
-      </div>
-    </div>
-  </div>
-</header>
-      <div class="outer">
-        <section id="main"><article id="post-Android高级UI-Path小试牛刀（二）" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/03/26/Android高级UI-Path小试牛刀（二）/" class="article-date">
-  <time datetime="2017-03-26T08:26:14.000Z" itemprop="datePublished">2017-03-26</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="article-title" itemprop="name">
-      Android高级UI_Path小试牛刀（二）
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>上一篇讲了path的基本用法，这篇我们要去实现水波纹以及粘性小球<br>这里就不得不提到<a href="http://blog.csdn.net/wingichoy/article/details/50492828" target="_blank" rel="external">贝塞尔曲线</a></p>
-<h3 id="一阶贝塞尔曲线："><a href="#一阶贝塞尔曲线：" class="headerlink" title="一阶贝塞尔曲线："></a>一阶贝塞尔曲线：</h3><p>Android 提供方法：<code>lineTo()</code></p>
-<h3 id="二阶贝塞尔曲线"><a href="#二阶贝塞尔曲线" class="headerlink" title="二阶贝塞尔曲线"></a>二阶贝塞尔曲线</h3><p>二阶贝塞尔曲线有一个控制点 P1 和两个数据点 P0，P2。如下图：<br><img src="https://user-gold-cdn.xitu.io/2017/3/19/a7bd97c8b3b259edcf3cf8bc61947643" alt="">二阶贝塞尔曲线</p>
-<p>Android 提供方法：<code>quadTo()</code><br>三阶贝塞尔曲线：<br>三阶贝塞尔曲线有两个控制点 P1，P2 和两个数据点 P0，P3。如下图：</p>
-<p><img src="https://user-gold-cdn.xitu.io/2017/3/19/f4b2226eacf785296c0dd56764b1f0f3" alt="">三阶贝塞尔曲线</p>
-<p>Android 提供方法：<code>cubicTo()</code></p>
-<h2 id="二阶贝塞尔曲线实现如图效果"><a href="#二阶贝塞尔曲线实现如图效果" class="headerlink" title="二阶贝塞尔曲线实现如图效果"></a>二阶贝塞尔曲线实现如图效果</h2><p><img src="http://upload-images.jianshu.io/upload_images/1981764-2ffdaf6f8ffe11a2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="水波纹"></p>
-<h3 id="实现思路："><a href="#实现思路：" class="headerlink" title="实现思路："></a>实现思路：</h3><ul>
-<li>画出至少两段的波纹</li>
-<li>使用 ValueAnimator 不断获取平移的值 offset</li>
-<li>利用 offset 不断的改变波纹的位置</li>
-<li>画一个圆，取与波纹相交的部分</li>
-</ul>
-<p>现在分步骤来说明：</p>
-<p>######1. 画出至少两段波纹我们首先要画出两段波纹。一段波纹就包含两条曲线。每条曲线我们可以使用 quadTo() 方法来画。<br>为了更容易理解，请看下图：</p>
-<p><img src="https://user-gold-cdn.xitu.io/2017/3/19/9583d01c16566b8d6a35a70efb8b574f" alt="">水波纹坐标图</p>
-<p>mWL 是一段波纹的长度，mCenterY 是屏幕高度的一半。<br>画第一段波纹的第一条曲线：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mPath.moveTo(-mWL, mCenterY); //将path操作的起点移动到(-mWL,mCenterY)mPath.quadTo((-mWL * 3 / 4) , mCenterY + 60, (-mWL / 2), mCenterY); //画出第一段波纹的第一条曲线</div></pre></td></tr></table></figure></p>
-<p>画出第一段波纹的第二条曲线<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mPath.quadTo((-mWL / 4) , mCenterY - 60, 0, mCenterY); //画出第一段波纹的第二条曲线</div></pre></td></tr></table></figure></p>
-<p>画出第二段波纹的第一条曲线：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mPath.quadTo((mWL /4) , mCenterY + 60, (mWL / 2), mCenterY); //画出第二段波纹的第一条曲线</div></pre></td></tr></table></figure></p>
-<p>画出第二段波纹的第二条曲线：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">mPath.quadTo((mWL * 3/ 4) , mCenterY - 60, mWL, mCenterY); //画出第二段波纹的第二条曲线</div></pre></td></tr></table></figure></p>
-<ol>
-<li>使用 ValueAnimator 不断获取平移的值 offset<br>那么现在来想一下应该怎么让这几段波纹动起来呢？我们需要一个 offset 的平移值。这个值应该加在每个点的x坐标上，并且 offset 是不断变化的，这样才会形成一个向右平移的效果。那怎么才能获取到这个变化的offset的值呢？答案就是要使用 ValueAnimator 。用法如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">private void initAnimator() &#123;</div><div class="line">    ValueAnimator animator = ValueAnimator.ofInt(0, mWL);</div><div class="line">    animator.setRepeatCount(ValueAnimator.INFINITE);</div><div class="line">    animator.setDuration(2000);</div><div class="line">    animator.setInterpolator(new LinearInterpolator());</div><div class="line">    animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() &#123;</div><div class="line">        @Override</div><div class="line">        public void onAnimationUpdate(ValueAnimator animation) &#123;</div><div class="line">            offset = (int) animation.getAnimatedValue();</div><div class="line">            postInvalidate();</div><div class="line">        &#125;</div><div class="line">    &#125;);</div><div class="line">    animator.start();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>这样只要动画开始，offset 就会不断从 0~mWL 变化。</p>
-<ol>
-<li>利用offset不断的改变波纹的位置<br>现在为曲线的所有 X 坐标都加上 offset 值。这样就会产生平移的效果，为了简化代码，这里使用的 for 循环来画曲线。<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">mPath.reset();</div><div class="line">mPath.moveTo(-mWL + offset, mCenterY);</div><div class="line">for (int i = 0; i &lt; mWaveCount; i++) &#123;</div><div class="line">    mPath.quadTo((-mWL * 3 / 4) + (i * mWL) + offset, mCenterY + 60, (-mWL / 2) + (i * mWL) + offset, mCenterY);</div><div class="line">    mPath.quadTo((-mWL / 4) + (i * mWL) + offset, mCenterY - 60, i * mWL + offset, mCenterY);</div><div class="line">&#125;</div><div class="line">mPath.lineTo(mScreenWidth, mScreenHeight);</div><div class="line">mPath.lineTo(0, mScreenHeight);</div><div class="line">mPath.close();</div><div class="line">canvas.setDrawFilter(pfd);</div><div class="line">canvas.drawPath(mPath, mPaint);</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>现在，我们已经得到了波浪<br><img src="http://upload-images.jianshu.io/upload_images/1981764-1724499282b0a4bd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="微信截图_20170326154225.png"><br>这里我们可以用<code>mPath.op(mPath2, Path.Op.INTERSECT);</code><br>但是这样就最低版本只能支持api19，兼容性不好，所以我们要换个思维，使用<code>canvas.clipPath(mPath, Region.Op.INTERSECT);</code><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">    protected void onDraw(Canvas canvas) &#123;</div><div class="line">        super.onDraw(canvas);</div><div class="line">        //画圆</div><div class="line">        canvas.drawCircle(mScreenWidth / 2, mCenterY, 300, mPaint2);</div><div class="line"></div><div class="line">        mPath.reset();</div><div class="line">        mPath.moveTo(-mWL + offset, mCenterY);</div><div class="line">        for (int i = 0; i &lt; mWaveCount; i++) &#123;</div><div class="line">            mPath.quadTo((-mWL * 3 / 4) + (i * mWL) + offset, mCenterY + 60, (-mWL / 2) + (i * mWL) + offset, mCenterY);</div><div class="line">            mPath.quadTo((-mWL / 4) + (i * mWL) + offset, mCenterY - 60, i * mWL + offset, mCenterY);</div><div class="line">        &#125;</div><div class="line">        mPath.lineTo(mScreenWidth, mScreenHeight);</div><div class="line">        mPath.lineTo(0, mScreenHeight);</div><div class="line">        mPath.close();</div><div class="line"></div><div class="line">        mPath2.addCircle(mScreenWidth / 2, mCenterY, 300, Path.Direction.CCW);</div><div class="line">        //api19以上才能用</div><div class="line">//        mPath.op(mPath2, Path.Op.INTERSECT);</div><div class="line">        //改用canvas.clipPath</div><div class="line">        canvas.clipPath(mPath, Region.Op.INTERSECT);</div><div class="line">        canvas.setDrawFilter(pfd);</div><div class="line">        canvas.drawPath(mPath2, mPaint);</div><div class="line"></div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
-<p>成功画出<br><img src="http://upload-images.jianshu.io/upload_images/1981764-2ffdaf6f8ffe11a2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="水波纹"></p>
-<h2 id="三阶贝塞尔曲线的应用："><a href="#三阶贝塞尔曲线的应用：" class="headerlink" title="三阶贝塞尔曲线的应用："></a><a href="http://www.jianshu.com/p/791d3a791ec2" target="_blank" rel="external">三阶贝塞尔曲线的应用</a>：</h2><p><img src="http://upload-images.jianshu.io/upload_images/1981764-36d562d0ac48b703.gif?imageMogr2/auto-orient/strip" alt="小水滴粘性.gif"><br>贝塞尔曲线知识讲解<br>将这个圆的动画效果拆解开看的画，其实会分为5个状态。<br><img src="http://upload-images.jianshu.io/upload_images/1981764-84cdc2af35da384c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">pic1.png-2kB</p>
-<p>状态1<br><img src="http://upload-images.jianshu.io/upload_images/1981764-30741d2b05ae249b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">pic2.png-2.4kB</p>
-<p>状态2<br><img src="http://upload-images.jianshu.io/upload_images/1981764-7464fcef15173bfe.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">pic3.png-2.6kB</p>
-<p>状态3<br><img src="http://upload-images.jianshu.io/upload_images/1981764-bb0e7db42babadbb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">pic4.png-2.4kB</p>
-<p>状态4<br><img src="http://upload-images.jianshu.io/upload_images/1981764-84cdc2af35da384c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">pic1.png-2kB</p>
-<p>状态5注：我这里的状态4和状态5其实与原设计图是有出入的，我这里的5个状态其实是对称关系的，但是原设计图并非是对称关系，然后因为我偷懒，就做成了对称设计，这个以后再优化吧~<br>也就是说，这个动画效果的实现就是不同状态之间的转化加上水平位移的实现，现在已经将动画肢解完了，那么接下来就讲解下如何实现圆的形变吧。<br>开始讲解具体内容之前我们需要先了解一下如何用贝塞尔曲线画一个圆，因为我的做法是通过贝塞尔曲线来实现的。<br><img src="http://upload-images.jianshu.io/upload_images/1981764-df468e6ae5b0cc31.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">stackoverflow</p>
-<p>上图是stackoverflow上的一个<a href="http://stackoverflow.com/questions/1734745/how-to-create-circle-with-b%C3%A9zier-curves" target="_blank" rel="external">答案</a>，这个答案可能说的不是很清楚，这里还有一篇<a href="http://spencermortensen.com/articles/bezier-circle/" target="_blank" rel="external">文章</a>，这两个的结果都是差不多，就是所需要的数值c约等于0.551915024494f，具体的论证过程可以看这两篇文章，那么这个c的值有什么用么，我用最简单的方法来说明，就是把图中的1理解为圆的半径，那么对应的另外个值就应该是半径乘以0.551915024494f。可能有朋友还是看不懂这个c到底干啥用呢，我下面画一个图来描述下，大概是怎么个意思。<br><img src="http://upload-images.jianshu.io/upload_images/1981764-a2f35fed26f10919.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">jiangjietu.png-16.1kB</p>
-<p>这里的坐标轴也就是Android中的坐标轴了，如果我们打算用贝塞尔曲线来画这么一个圆的话，我们需要知道这个圆的半径，以及图中的M的值，知道这两个值的话就能够知道图中12个点的坐标，知道坐标就能够用Path的cubicTo方法来使用贝塞尔曲线画出圆了。这里稍微展示点代码来说明如何绘制P0至P3这段圆弧。<br>mPath.moveTo(p0.x,p0.y);mPath.cubicTo(p1.x, p1.y, p2.x, p2.y, p3.x,p3.y);</p>
-<p>这样我们就知道如何使用贝塞尔曲线来绘制一个圆了。也就是状态1和状态5我们都会绘制了，接下来看看状态2如何绘制。<br><img src="http://upload-images.jianshu.io/upload_images/1981764-7aca9bf438ef36ec.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">jiangjietu2.png-108.1kB</p>
-<p>通过上图大家就能很快的明白状态2应该如何绘制，其实就是把右边的点向右移动点距离就行了。其实photoshop(sketch)这些绘图软件中的钢笔工具(Vector)就是用的贝塞尔曲线，然后这里推荐个<a href="http://bezier.method.ac/" target="_blank" rel="external">网址</a>给大家，轻松上手钢笔工具的使用哦，强烈推荐！！！<br>看完上面的讲解，那么状态3也就一点都不难了。<br><img src="http://upload-images.jianshu.io/upload_images/1981764-2d5deadeca830d5a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="">jiangjietu3.png-111kB</p>
-<p>看到上图就明白状态3的实现就是在状态2的基础上修改了个值，一个是M的值加大，让圆看起来跟肥一点，还有就是圈住的那些点向右移动，做到居中。<br><a href="https://github.com/apkcore/PathTest" target="_blank" rel="external">github代码下载</a></p>
-<p>也欢迎关注我的<a href="http://www.jianshu.com/u/82e5d3b09197" target="_blank" rel="external">简书</a>和<a href="http://blog.csdn.net/apkcore?viewmode=contents" target="_blank" rel="external">CSDN</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/03/26/Android高级UI-Path小试牛刀（二）/" data-id="cj0qfao07000314qbq4phs1kq" class="article-share-link">Delen</a>
-      
-      
-    </footer>
-  </div>
-  
-    
-<nav id="article-nav">
-  
-  
-    <a href="/2017/03/26/Android高级UI_Path小试牛刀（一）/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Ouder</strong>
-      <div class="article-nav-title">Android高级UI_Path小试牛刀（一）</div>
-    </a>
-  
-</nav>
-
-  
-</article>
-
-</section>
-        
-          <aside id="sidebar">
-  
-    
-
-  
-    
-
-  
-    
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Archieven</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">March 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">January 2017</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">Recente berichten</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2017/03/26/Android高级UI-Path小试牛刀（二）/">Android高级UI_Path小试牛刀（二）</a>
-          </li>
-        
-          <li>
-            <a href="/2017/03/26/Android高级UI_Path小试牛刀（一）/">Android高级UI_Path小试牛刀（一）</a>
-          </li>
-        
-          <li>
-            <a href="/2017/03/24/深渊巨坑！关于android-N后多语言切换/">深渊巨坑！关于android N后多语言切换</a>
-          </li>
-        
-          <li>
-            <a href="/2017/01/24/hello-world/">Hello World</a>
-          </li>
-        
-      </ul>
-    </div>
-  </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      &copy; 2017 Apk core<br>
-      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
-    </div>
-    <nav id="mobile-nav">
-  
-    <a href="/" class="mobile-nav-link">Home</a>
-  
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
-    
-
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-
-
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
-
-
-<script src="/js/script.js"></script>
-
-  </div>
-</body>
-</html>
+block content
+  .post
+    h1.post-title= page.title
+    .post-meta= page.date.format('ll')
+      if page.categories.length > 0
+        span= ' | '
+        span.category
+          for category in page.categories.toArray()
+            a(href=url_for(category.path))= category.name
+      if theme.busuanzi == true
+        script(src='https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js', async)
+        span#busuanzi_container_page_pv= ' | '
+          span#busuanzi_value_page_pv
+          span= ' ' + __('Hits')
+    if theme.duoshuo
+      a.ds-thread-count(data-thread-key=page.path, href=url_for(page.path) + '#comments')
+    if theme.disqus
+      a.disqus-comment-count(data-disqus-identifier=page.path, href=url_for(page.path) + '#disqus_thread')
+    if page.toc
+      div(class='clear')
+        div(id='toc' class='toc-article')
+          div(class='toc-title')= __('contents')
+          != toc(page.content)
+    .post-content
+      != page.content
+    if theme.shareto == true
+      script(type='text/javascript', src=url_for(theme.js) + '/share.js' + '?v=' + theme.version, async)
+      a.article-share-link(data-url='#{page.permalink}', data-id='#{page._id}')= __('shareto')
+    include _partial/tag
+    include _partial/post_nav
+    if theme.duoshuo
+      div(class='ds-share flat' data-thread-key=page.path, data-title=page.title, data-url=page.permalink)
+         .ds-share-inline
+            ul.ds-share-icons-16
+              li(data-toggle='ds-share-icons-more')
+                a(class='ds-more' href='javascript:void(0);') 分享到：
+              li
+                a(class='ds-weibo' href='javascript:void(0);' data-service='weibo') 微博
+              li
+                a(class='ds-qzone' href='javascript:void(0);' data-service='qzone') QQ空间
+              li
+                a(class='ds-qqt' href='javascript:void(0);' data-service='qqt') 腾讯微博
+              li
+                a(class='ds-wechat' href='javascript:void(0);' data-service='wechat') 微信
+            .ds-share-icons-more
+    include _partial/comments
