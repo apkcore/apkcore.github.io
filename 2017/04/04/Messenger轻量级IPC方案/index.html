@@ -85,25 +85,19 @@
 
 
 <meta name="description" content="概述什么是messengerMessenger可以翻译为信使，通过它可以在不同的进程中传递Messenger对象，在Message中放入我们要传递的数据，可以轻松实现数据的跨进程传递。Messenger是一种轻量级的IPC方案，底层实现了AIDL。
-什么是基于消息的进程间通信如下图所示 
-
-可以看到，我们可以在客户端发送一个Message给服务端，服务端在handler中会接收到客户端的消息，然后">
+什么是基于消息的进程间通信">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Messenger轻量级IPC方案">
 <meta property="og:url" content="http://yoursite.com/2017/04/04/Messenger轻量级IPC方案/index.html">
 <meta property="og:site_name" content="Apkcore">
 <meta property="og:description" content="概述什么是messengerMessenger可以翻译为信使，通过它可以在不同的进程中传递Messenger对象，在Message中放入我们要传递的数据，可以轻松实现数据的跨进程传递。Messenger是一种轻量级的IPC方案，底层实现了AIDL。
-什么是基于消息的进程间通信如下图所示 
-
-可以看到，我们可以在客户端发送一个Message给服务端，服务端在handler中会接收到客户端的消息，然后">
+什么是基于消息的进程间通信">
 <meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-ba04cc8b41bf7062.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2017-04-03T16:20:55.130Z">
+<meta property="og:updated_time" content="2017-04-03T16:22:25.475Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Messenger轻量级IPC方案">
 <meta name="twitter:description" content="概述什么是messengerMessenger可以翻译为信使，通过它可以在不同的进程中传递Messenger对象，在Message中放入我们要传递的数据，可以轻松实现数据的跨进程传递。Messenger是一种轻量级的IPC方案，底层实现了AIDL。
-什么是基于消息的进程间通信如下图所示 
-
-可以看到，我们可以在客户端发送一个Message给服务端，服务端在handler中会接收到客户端的消息，然后">
+什么是基于消息的进程间通信">
 <meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/1981764-ba04cc8b41bf7062.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
 
 
@@ -327,7 +321,8 @@
 
       
         <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><h2 id="什么是messenger"><a href="#什么是messenger" class="headerlink" title="什么是messenger"></a>什么是messenger</h2><p>Messenger可以翻译为信使，通过它可以在不同的进程中传递Messenger对象，在Message中放入我们要传递的数据，可以轻松实现数据的跨进程传递。Messenger是一种轻量级的IPC方案，底层实现了AIDL。</p>
-<h2 id="什么是基于消息的进程间通信"><a href="#什么是基于消息的进程间通信" class="headerlink" title="什么是基于消息的进程间通信"></a>什么是基于消息的进程间通信</h2><p>如下图所示 </p>
+<h2 id="什么是基于消息的进程间通信"><a href="#什么是基于消息的进程间通信" class="headerlink" title="什么是基于消息的进程间通信"></a>什么是基于消息的进程间通信</h2><a id="more"></a>
+<p>如下图所示 </p>
 <p><img src="http://upload-images.jianshu.io/upload_images/1981764-ba04cc8b41bf7062.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
 <p>可以看到，我们可以在客户端发送一个Message给服务端，服务端在handler中会接收到客户端的消息，然后进行对应的处理，处理完成后，再奖结果等数据封装成Message，发送给客户端，客户端的handler中会接收到处理的结果。</p>
 <h2 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h2><ul>
