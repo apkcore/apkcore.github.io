@@ -1,0 +1,672 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="概述什么是messengerMessenger可以翻译为信使，通过它可以在不同的进程中传递Messenger对象，在Message中放入我们要传递的数据，可以轻松实现数据的跨进程传递。Messenger是一种轻量级的IPC方案，底层实现了AIDL。
+什么是基于消息的进程间通信如下图所示 
+
+可以看到，我们可以在客户端发送一个Message给服务端，服务端在handler中会接收到客户端的消息，然后">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Messenger轻量级IPC方案">
+<meta property="og:url" content="http://yoursite.com/2017/04/04/Messenger轻量级IPC方案/index.html">
+<meta property="og:site_name" content="Apkcore">
+<meta property="og:description" content="概述什么是messengerMessenger可以翻译为信使，通过它可以在不同的进程中传递Messenger对象，在Message中放入我们要传递的数据，可以轻松实现数据的跨进程传递。Messenger是一种轻量级的IPC方案，底层实现了AIDL。
+什么是基于消息的进程间通信如下图所示 
+
+可以看到，我们可以在客户端发送一个Message给服务端，服务端在handler中会接收到客户端的消息，然后">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/1981764-ba04cc8b41bf7062.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:updated_time" content="2017-04-03T16:20:55.130Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Messenger轻量级IPC方案">
+<meta name="twitter:description" content="概述什么是messengerMessenger可以翻译为信使，通过它可以在不同的进程中传递Messenger对象，在Message中放入我们要传递的数据，可以轻松实现数据的跨进程传递。Messenger是一种轻量级的IPC方案，底层实现了AIDL。
+什么是基于消息的进程间通信如下图所示 
+
+可以看到，我们可以在客户端发送一个Message给服务端，服务端在handler中会接收到客户端的消息，然后">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/1981764-ba04cc8b41bf7062.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/04/04/Messenger轻量级IPC方案/"/>
+
+
+
+
+
+  <title> Messenger轻量级IPC方案 | Apkcore </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Apkcore</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+    
+      <p class="site-subtitle"></p>
+    
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/04/Messenger轻量级IPC方案/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Apk core">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.gif">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Apkcore">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Apkcore" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Messenger轻量级IPC方案
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-04-04T00:20:14+08:00">
+                2017-04-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><h2 id="什么是messenger"><a href="#什么是messenger" class="headerlink" title="什么是messenger"></a>什么是messenger</h2><p>Messenger可以翻译为信使，通过它可以在不同的进程中传递Messenger对象，在Message中放入我们要传递的数据，可以轻松实现数据的跨进程传递。Messenger是一种轻量级的IPC方案，底层实现了AIDL。</p>
+<h2 id="什么是基于消息的进程间通信"><a href="#什么是基于消息的进程间通信" class="headerlink" title="什么是基于消息的进程间通信"></a>什么是基于消息的进程间通信</h2><p>如下图所示 </p>
+<p><img src="http://upload-images.jianshu.io/upload_images/1981764-ba04cc8b41bf7062.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p>可以看到，我们可以在客户端发送一个Message给服务端，服务端在handler中会接收到客户端的消息，然后进行对应的处理，处理完成后，再奖结果等数据封装成Message，发送给客户端，客户端的handler中会接收到处理的结果。</p>
+<h2 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h2><ul>
+<li>基于Message，这个熟悉</li>
+<li>支持回调的方式，也就是服务端处理完成长任务可以和客户端交互</li>
+<li>不需要编写AIDL文件<br>此外还支持，记录客户端的Messenger，然后可以实现一对多的通信；甚至作为一个转接处，做生意两个进程都能通过服务端进行通信。<h1 id="通信实例"><a href="#通信实例" class="headerlink" title="通信实例"></a>通信实例</h1><h3 id="Service端"><a href="#Service端" class="headerlink" title="Service端"></a>Service端</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">public class MessengerService extends Service &#123;</div><div class="line"></div><div class="line">    private static final String TAG = &quot;MessengerService&quot;;</div><div class="line"></div><div class="line">    private static class MessengerHandler extends Handler &#123;</div><div class="line">        @Override</div><div class="line">        public void handleMessage(Message msg) &#123;</div><div class="line">            switch (msg.what) &#123;</div><div class="line">                case 9527:</div><div class="line">                    Log.d(TAG, &quot;receive msg from Client: &quot; + msg.getData().getString(&quot;msg&quot;));</div><div class="line">                    break;</div><div class="line">                default:</div><div class="line">                    super.handleMessage(msg);</div><div class="line">                    break;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private final Messenger mMessenger = new Messenger(new MessengerHandler());</div><div class="line"></div><div class="line">    @Nullable</div><div class="line">    @Override</div><div class="line">    public IBinder onBind(Intent intent) &#123;</div><div class="line">        return mMessenger.getBinder();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="Activity客户端"><a href="#Activity客户端" class="headerlink" title="Activity客户端"></a>Activity客户端</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">public class MessengerActivity extends AppCompatActivity &#123;</div><div class="line"></div><div class="line">    private static final String TAG = &quot;MessengerActivity&quot;;</div><div class="line"></div><div class="line">    private Messenger mService;</div><div class="line">    private ServiceConnection mServiceConnection= new ServiceConnection() &#123;</div><div class="line">        @Override</div><div class="line">        public void onServiceConnected(ComponentName name, IBinder service) &#123;</div><div class="line">            mService = new Messenger(service);</div><div class="line">            Message msg = Message.obtain(null,9527);</div><div class="line">            Bundle bundle = new Bundle();</div><div class="line">            bundle.putString(&quot;msg&quot;,&quot;hello, man,this is Client!&quot;);</div><div class="line">            msg.setData(bundle);</div><div class="line">            try &#123;</div><div class="line">                mService.send(msg);</div><div class="line">            &#125; catch (RemoteException e) &#123;</div><div class="line">                e.printStackTrace();</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        @Override</div><div class="line">        public void onServiceDisconnected(ComponentName name) &#123;</div><div class="line"></div><div class="line">        &#125;</div><div class="line">    &#125;;</div><div class="line">    @Override</div><div class="line">    protected void onCreate(@Nullable Bundle savedInstanceState) &#123;</div><div class="line">        super.onCreate(savedInstanceState);</div><div class="line">        setContentView(R.layout.activity_messenger);</div><div class="line">        Intent intent = new Intent(this, MessengerService.class);</div><div class="line">        bindService(intent,mServiceConnection,BIND_AUTO_CREATE);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    protected void onDestroy() &#123;</div><div class="line">        unbindService(mServiceConnection);</div><div class="line">        super.onDestroy();</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>清单文件中，设置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;service android:name=&quot;.Messenger.MessengerService&quot; android:process=&quot;:remote&quot;/&gt;</div></pre></td></tr></table></figure></p>
+<p>运行应用，看一下log，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">04-03 15:34:42.408 16418-16418/? D/MessengerService: receive msg from Client: hello, man,this is Client!</div></pre></td></tr></table></figure>
+<p>通过上面的例子可以看出，在Messenger中进行数据传递必须将数据放入Message中，而Messenger和Message都实现了Parclabe接口，因此可以跨进程传输。简单来说，Message来传输，Message中能使用的载体只有what,agri,arg2,Bundle以及replyTo(这个很重要，过下要讲到)。在Message中另一个字段object在Android2.2以及，object字段不支持跨进程传输，不过2.2以后，也仅仅提供了实现了Parclabe接口的对象进行传输。</p>
+<h2 id="所幸我们还有Bundle，Bundel可以支持大量的数据类型。"><a href="#所幸我们还有Bundle，Bundel可以支持大量的数据类型。" class="headerlink" title="所幸我们还有Bundle，Bundel可以支持大量的数据类型。"></a>所幸我们还有Bundle，Bundel可以支持大量的数据类型。</h2><h2 id="互相通信"><a href="#互相通信" class="headerlink" title="互相通信"></a>互相通信</h2><p>上面的例子实现了服务端接收到客户端的消息，但是我们有时候还需要回应。</p>
+<h3 id="服务端修改"><a href="#服务端修改" class="headerlink" title="服务端修改"></a>服务端修改</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">private static class MessengerHandler extends Handler &#123;</div><div class="line">    @Override</div><div class="line">    public void handleMessage(Message msg) &#123;</div><div class="line">        switch (msg.what) &#123;</div><div class="line">            case 9527:</div><div class="line">                Log.d(TAG, &quot;receive msg from Client: &quot; + msg.getData().getString(&quot;msg&quot;));</div><div class="line">                Messenger client = msg.replyTo;</div><div class="line">                Message replyMessage = Message.obtain(null,9528);</div><div class="line">                Bundle bundle = new Bundle();</div><div class="line">                bundle.putString(&quot;reply&quot;,&quot;hi!this is Service!&quot;);</div><div class="line">                replyMessage.setData(bundle);</div><div class="line">                try &#123;</div><div class="line">                    client.send(replyMessage);</div><div class="line">                &#125; catch (RemoteException e) &#123;</div><div class="line">                    e.printStackTrace();</div><div class="line">                &#125;</div><div class="line">                break;</div><div class="line">            default:</div><div class="line">                super.handleMessage(msg);</div><div class="line">                break;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="客户端修改"><a href="#客户端修改" class="headerlink" title="客户端修改"></a>客户端修改</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">private Messenger mReplyMessenger = new Messenger(new MessengerHandler());</div><div class="line"></div><div class="line">private static  class MessengerHandler extends Handler&#123;</div><div class="line">    @Override</div><div class="line">    public void handleMessage(Message msg) &#123;</div><div class="line">        switch (msg.what)&#123;</div><div class="line">            case 9528:</div><div class="line">                Log.d(TAG, &quot;handleMessage: &quot;+msg.getData().getString(&quot;reply&quot;));</div><div class="line">                break;</div><div class="line">            default:</div><div class="line">        super.handleMessage(msg);</div><div class="line">                break;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">private Messenger mService;</div><div class="line">private ServiceConnection mServiceConnection= new ServiceConnection() &#123;</div><div class="line">    @Override</div><div class="line">    public void onServiceConnected(ComponentName name, IBinder service) &#123;</div><div class="line">        mService = new Messenger(service);</div><div class="line">        Message msg = Message.obtain(null,9527);</div><div class="line">        Bundle bundle = new Bundle();</div><div class="line">        bundle.putString(&quot;msg&quot;,&quot;hello, man,this is Client!&quot;);</div><div class="line">        msg.setData(bundle);</div><div class="line"></div><div class="line">        //一定要加这句</div><div class="line">        msg.replyTo = mReplyMessenger;</div><div class="line">        try &#123;</div><div class="line">            mService.send(msg);</div><div class="line">        &#125; catch (RemoteException e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @Override</div><div class="line">    public void onServiceDisconnected(ComponentName name) &#123;</div><div class="line"></div><div class="line">    &#125;</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>可以通过日志看到相互通信成功<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">04-03 15:54:44.839 2733-2733/com.apkcore.aidltest:remote D/MessengerService: receive msg from Client: hello, man,this is Client!</div><div class="line"></div><div class="line">04-03 15:54:44.872 2698-2698/com.apkcore.aidltest D/MessengerActivity: handleMessage: hi!this is Service!</div></pre></td></tr></table></figure></p>
+<h2 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h2><p>Messenger是以串行的方式处理客户端发来的ii他呵呵，如果有大量的消息同时发送到服务端，服务端仍然只能一个一个的处理，如果有大量的并发请求，那么用Messenger就不太合适。同时Messenger的作用主要是传递消息，很多时候我们可以需要跨进程调用服务端的方法，这种情况下用Messenger就无法做到，这个时候我们就要使用AIDL。<br>也欢迎大家关注我的<a href="http://www.jianshu.com/u/82e5d3b09197" target="_blank" rel="external">简书</a>、<a href="http://blog.csdn.net/apkcore?viewmode=contents" target="_blank" rel="external">CSDN</a>和<a href="https://apkcore.github.io/" target="_blank" rel="external">github主页</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/27/Android高级UI-双缓冲策略解决GPU卡顿/" rel="next" title="Android高级UI_双缓冲策略解决GPU卡顿">
+                <i class="fa fa-chevron-left"></i> Android高级UI_双缓冲策略解决GPU卡顿
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+          
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="Apk core" />
+          <p class="site-author-name" itemprop="name">Apk core</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+        
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/apkcore" target="_blank" title="Github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  Github
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是messenger"><span class="nav-number">1.1.</span> <span class="nav-text">什么是messenger</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是基于消息的进程间通信"><span class="nav-number">1.2.</span> <span class="nav-text">什么是基于消息的进程间通信</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优势"><span class="nav-number">1.3.</span> <span class="nav-text">优势</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#通信实例"><span class="nav-number">2.</span> <span class="nav-text">通信实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Service端"><span class="nav-number">2.0.1.</span> <span class="nav-text">Service端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Activity客户端"><span class="nav-number">2.0.2.</span> <span class="nav-text">Activity客户端</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#所幸我们还有Bundle，Bundel可以支持大量的数据类型。"><span class="nav-number">2.1.</span> <span class="nav-text">所幸我们还有Bundle，Bundel可以支持大量的数据类型。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#互相通信"><span class="nav-number">2.2.</span> <span class="nav-text">互相通信</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#服务端修改"><span class="nav-number">2.2.1.</span> <span class="nav-text">服务端修改</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端修改"><span class="nav-number">2.2.2.</span> <span class="nav-text">客户端修改</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缺点"><span class="nav-number">2.3.</span> <span class="nav-text">缺点</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Apk core</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+      <!-- UY BEGIN -->
+      <script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid="></script>
+      <!-- UY END -->
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>
